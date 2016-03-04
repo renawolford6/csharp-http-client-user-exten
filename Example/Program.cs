@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Example
 {
@@ -6,14 +7,17 @@ namespace Example
     {
         static void Main(string[] args)
         {
-            dynamic client = new CSharpHTTPClient.Client();
-            dynamic temp = client.Foo;
-            dynamic ret = client.Foo.Bar.Will.Do._("magic").Get();
-            String string1 = ret.url_path_name;
-            Console.WriteLine("After first Get: " + string1);
-            dynamic ret2 = temp.Will.Do.Get();
-            String string2 = ret2.url_path_name;
-            Console.WriteLine("After second Get: " + string2);
+            String host = "https://e9sk3d3bfaikbpdq7.stoplight-proxy.io";
+            Dictionary<String, String> request_headers = new Dictionary<String, String>();
+            request_headers.Add("X-Test", "test");
+            String version = "v3";
+            dynamic client = new CSharpHTTPClient.Client(host, request_headers, version);
+            // dynamic temp = client.Foo;
+            dynamic ret = client.api_keys.Get();
+            Console.WriteLine(ret.Content.ReadAsStringAsync().Result);
+            // dynamic ret2 = temp.Will.Do.Get();
+            // String string2 = ret2.url_path;
+            // Console.WriteLine("After second Get: " + string2);
             Console.WriteLine("\n\nPress any key to continue.");
             Console.ReadLine();
         }
