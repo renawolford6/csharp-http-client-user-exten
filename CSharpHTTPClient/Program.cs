@@ -1,10 +1,12 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace CSharpHTTPClient
@@ -13,50 +15,47 @@ namespace CSharpHTTPClient
     {
         private String _apiKey;
         private String _host;
-        private Dictionary <String,String> request_headers;
-        private String version;
+        private Dictionary <String,String> _request_headers;
+        private String _version;
         private const string MediaType = "application/json";
         public enum Methods
         {
             DELETE, GET, PATCH, POST, PUT
         }
-        public string url_path;
+        public String _url_path;
 
         public Client(String host, Dictionary<string,string> request_headers = null, string version = null, string url_path = null)
         {
-            this._host = host;
-            if (this.request_headers != null && request_headers != null)
+            _host = host;
+            if(request_headers != null)
             {
-                this.request_headers.Union(request_headers);
-            } else if (this.request_headers == null && request_headers != null)
-            {
-                this.request_headers = request_headers;
+                _request_headers = (_request_headers != null)
+                    ? _request_headers.Union(request_headers).ToDictionary(pair => pair.Key, pair => pair.Value) : request_headers;
             }
-
-            if (version != null)
-            {
-                this.version = version;
-            }
-            
-            if (url_path != null)
-            {
-                this.url_path = url_path;
-            }
+            _version = (version != null) ? version : null;
+            _url_path = (url_path != null) ? url_path : null;
         }
 
         public String build_url()
         {
-            Console.WriteLine(this._host + "/" + this.version + this.url_path);
-            return this._host + "/" + this.version + this.url_path;
+            String endpoint = _host + "/" + _version + _url_path;
+            return endpoint;
         }
 
         public Client build_client(String name = null)
         {
+            String endpoint;
             if (name != null)
             {
-                this.url_path += "/" + name;
+                endpoint = _url_path + "/" + name;
             }
-            return new Client(this._host, this.request_headers, this.version, this.url_path);
+            else
+            {
+                endpoint = _url_path;
+            }
+            Console.WriteLine("Building the URL: " + _url_path);
+            _url_path = null;
+            return new Client(_host, _request_headers, _version, endpoint);
         }
 
         // Magic method to handle special cases
@@ -77,10 +76,13 @@ namespace CSharpHTTPClient
         {
             if(binder.Name == "Get")
             {
-                result = this.RequestAsync(Methods.GET);
+                result = RequestAsync(Methods.GET).Result;
             }
-            result = this.RequestAsync(Methods.GET).Result;
-            // result = null;
+            else
+            {
+                Console.WriteLine("Should not get here");
+                result = null;
+            }
             return true;
         }
 
@@ -90,17 +92,17 @@ namespace CSharpHTTPClient
             {
                 try
                 {
-                    client.BaseAddress = new Uri(this._host);
+                    client.BaseAddress = new Uri(_host);
                     client.DefaultRequestHeaders.Accept.Clear();
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaType));
-                    this._apiKey = Environment.GetEnvironmentVariable("SENDGRID_APIKEY", EnvironmentVariableTarget.User);
+                    _apiKey = Environment.GetEnvironmentVariable("SENDGRID_APIKEY", EnvironmentVariableTarget.User);
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", this._apiKey);
 
                     switch (method)
                     {
                         case Methods.GET:
-                            endpoint = this.build_url();
-                            Console.WriteLine("endpoint " + endpoint);
+                            endpoint = build_url();
+                            Console.WriteLine("Endpoint" + endpoint);
                             return await client.GetAsync(endpoint);
                     }
                     return null;
@@ -115,11 +117,6 @@ namespace CSharpHTTPClient
                     return response;
                 }
             }
-        }
-
-        public async Task<HttpResponseMessage> Get(string endpoint)
-        {
-            return await RequestAsync(Methods.GET, endpoint, null);
         }
     }
 }

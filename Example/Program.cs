@@ -12,12 +12,14 @@ namespace Example
             request_headers.Add("X-Test", "test");
             String version = "v3";
             dynamic client = new CSharpHTTPClient.Client(host, request_headers, version);
-            // dynamic temp = client.Foo;
-            dynamic ret = client.api_keys.Get();
-            Console.WriteLine(ret.Content.ReadAsStringAsync().Result);
-            // dynamic ret2 = temp.Will.Do.Get();
-            // String string2 = ret2.url_path;
-            // Console.WriteLine("After second Get: " + string2);
+
+            dynamic ret2 = client.asm.suppressions.global._("test1+v2@example.com").Get();
+            Console.WriteLine(ret2.Content.ReadAsStringAsync().Result);
+
+            dynamic ret = client.api_keys;
+            dynamic ret3 = ret.Get();
+            Console.WriteLine(ret3.Content.ReadAsStringAsync().Result);
+
             Console.WriteLine("\n\nPress any key to continue.");
             Console.ReadLine();
         }
