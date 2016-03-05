@@ -2,25 +2,40 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace SendGrid.CSharp.HTTP.Client
 {
+    public class Response
+    {
+        public HttpStatusCode StatusCode;
+        public HttpContent ResponseBody;
+        public HttpResponseHeaders ResponseHeaders;
+
+        public Response(HttpStatusCode statusCode, HttpContent responseBody, HttpResponseHeaders responseHeaders)
+        {
+            StatusCode = statusCode;
+            ResponseBody = responseBody;
+            ResponseHeaders = responseHeaders;
+        }
+    }
+
     public class Client : DynamicObject
     {
-        private String _apiKey;
-        private String _host;
-        private Dictionary <String,String> _requestHeaders;
-        private String _version;
-        private String _urlPath;
+        private string _apiKey;
+        private string _host;
+        private Dictionary <string,string> _requestHeaders;
+        private string _version;
+        private string _urlPath;
         public enum Methods
         {
             DELETE, GET, PATCH, POST, PUT
         }
 
-        public Client(String host, Dictionary<string,string> requestHeaders = null, string version = null, string urlPath = null)
+        public Client(string host, Dictionary<string,string> requestHeaders = null, string version = null, string urlPath = null)
         {
             _host = host;
             if(requestHeaders != null)
@@ -32,15 +47,15 @@ namespace SendGrid.CSharp.HTTP.Client
             _urlPath = (urlPath != null) ? urlPath : null;
         }
 
-        private String BuildUrl()
+        private string BuildUrl()
         {
-            String endpoint = _host + "/" + _version + _urlPath;
+            string endpoint = _host + "/" + _version + _urlPath;
             return endpoint;
         }
 
-        private Client BuildClient(String name = null)
+        private Client BuildClient(string name = null)
         {
-            String endpoint;
+            string endpoint;
             if (name != null)
             {
                 endpoint = _urlPath + "/" + name;
@@ -54,7 +69,7 @@ namespace SendGrid.CSharp.HTTP.Client
         }
 
         // Magic method to handle special cases
-        public Client _(String magic)
+        public Client _(string magic)
         {
             return BuildClient(magic);
         }
@@ -80,7 +95,7 @@ namespace SendGrid.CSharp.HTTP.Client
             return true;
         }
 
-        private async Task<HttpResponseMessage> RequestAsync(Methods method, string endpoint = null, String data = null)
+        private async Task<Response> RequestAsync(Methods method, string endpoint = null, String data = null)
         {
             using (var client = new HttpClient())
             {
@@ -95,7 +110,8 @@ namespace SendGrid.CSharp.HTTP.Client
                     {
                         case Methods.GET:
                             endpoint = BuildUrl();
-                            return await client.GetAsync(endpoint);
+                            HttpResponseMessage response = await client.GetAsync(endpoint);
+                            return new Response(response.StatusCode, response.Content, response.Headers);
                     }
                     return null;
                 }
@@ -106,7 +122,7 @@ namespace SendGrid.CSharp.HTTP.Client
                     message = (ex is HttpRequestException) ? ".NET HttpRequestException" : ".NET Exception";
                     message = message + ", raw message: \n\n";
                     response.Content = new StringContent(message + ex.Message);
-                    return response;
+                    return new Response(response.StatusCode, response.Content, response.Headers);
                 }
             }
         }

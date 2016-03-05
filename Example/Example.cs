@@ -15,11 +15,15 @@ namespace Example
             dynamic client = new Client(host, requestHeaders, version);
 
             dynamic response0 = client.asm.suppressions.global._("test1+v2@example.com").Get();
-            Console.WriteLine(response0.Content.ReadAsStringAsync().Result);
+            Console.WriteLine(response0.StatusCode);
+            Console.WriteLine(response0.ResponseBody.ReadAsStringAsync().Result);
+            Console.WriteLine(response0.ResponseHeaders.ToString());
 
             dynamic response1 = client.api_keys;
-            dynamic response2 = response1.Get();
-            Console.WriteLine(response2.Content.ReadAsStringAsync().Result);
+            Response response2 = response1.Get();
+            Console.WriteLine(response2.StatusCode);
+            Console.WriteLine(response2.ResponseBody.ReadAsStringAsync().Result);
+            Console.WriteLine(response2.ResponseHeaders.ToString());
 
             Console.WriteLine("\n\nPress any key to continue.");
             Console.ReadLine();
