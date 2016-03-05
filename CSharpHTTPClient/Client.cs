@@ -1,73 +1,68 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Reflection;
 using System.Threading.Tasks;
 
-namespace CSharpHTTPClient
+namespace SendGrid.CSharp.HTTP.Client
 {
     public class Client : DynamicObject
     {
         private String _apiKey;
         private String _host;
-        private Dictionary <String,String> _request_headers;
+        private Dictionary <String,String> _requestHeaders;
         private String _version;
-        private const string MediaType = "application/json";
+        private String _urlPath;
         public enum Methods
         {
             DELETE, GET, PATCH, POST, PUT
         }
-        public String _url_path;
 
-        public Client(String host, Dictionary<string,string> request_headers = null, string version = null, string url_path = null)
+        public Client(String host, Dictionary<string,string> requestHeaders = null, string version = null, string urlPath = null)
         {
             _host = host;
-            if(request_headers != null)
+            if(requestHeaders != null)
             {
-                _request_headers = (_request_headers != null)
-                    ? _request_headers.Union(request_headers).ToDictionary(pair => pair.Key, pair => pair.Value) : request_headers;
+                _requestHeaders = (_requestHeaders != null)
+                    ? _requestHeaders.Union(requestHeaders).ToDictionary(pair => pair.Key, pair => pair.Value) : requestHeaders;
             }
             _version = (version != null) ? version : null;
-            _url_path = (url_path != null) ? url_path : null;
+            _urlPath = (urlPath != null) ? urlPath : null;
         }
 
-        public String build_url()
+        private String BuildUrl()
         {
-            String endpoint = _host + "/" + _version + _url_path;
+            String endpoint = _host + "/" + _version + _urlPath;
             return endpoint;
         }
 
-        public Client build_client(String name = null)
+        private Client BuildClient(String name = null)
         {
             String endpoint;
             if (name != null)
             {
-                endpoint = _url_path + "/" + name;
+                endpoint = _urlPath + "/" + name;
             }
             else
             {
-                endpoint = _url_path;
+                endpoint = _urlPath;
             }
-            Console.WriteLine("Building the URL: " + _url_path);
-            _url_path = null;
-            return new Client(_host, _request_headers, _version, endpoint);
+            _urlPath = null; // Reset the current object's state before we return a new one
+            return new Client(_host, _requestHeaders, _version, endpoint);
         }
 
         // Magic method to handle special cases
         public Client _(String magic)
         {
-            return build_client(magic);
+            return BuildClient(magic);
         }
 
         // Reflection
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
-            result = build_client(binder.Name);
+            result = BuildClient(binder.Name);
             return true;
         }
 
@@ -80,13 +75,12 @@ namespace CSharpHTTPClient
             }
             else
             {
-                Console.WriteLine("Should not get here");
                 result = null;
             }
             return true;
         }
 
-        private async Task<HttpResponseMessage> RequestAsync(Methods method, string endpoint = null, JObject data = null)
+        private async Task<HttpResponseMessage> RequestAsync(Methods method, string endpoint = null, String data = null)
         {
             using (var client = new HttpClient())
             {
@@ -94,15 +88,13 @@ namespace CSharpHTTPClient
                 {
                     client.BaseAddress = new Uri(_host);
                     client.DefaultRequestHeaders.Accept.Clear();
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaType));
                     _apiKey = Environment.GetEnvironmentVariable("SENDGRID_APIKEY", EnvironmentVariableTarget.User);
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", this._apiKey);
 
                     switch (method)
                     {
                         case Methods.GET:
-                            endpoint = build_url();
-                            Console.WriteLine("Endpoint" + endpoint);
+                            endpoint = BuildUrl();
                             return await client.GetAsync(endpoint);
                     }
                     return null;
