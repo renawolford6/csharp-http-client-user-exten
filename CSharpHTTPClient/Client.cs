@@ -30,6 +30,7 @@ namespace SendGrid.CSharp.HTTP.Client
         private Dictionary <string,string> _requestHeaders;
         private string _version;
         private string _urlPath;
+        public string MediaType;
         public enum Methods
         {
             DELETE, GET, PATCH, POST, PUT
@@ -103,8 +104,22 @@ namespace SendGrid.CSharp.HTTP.Client
                 {
                     client.BaseAddress = new Uri(_host);
                     client.DefaultRequestHeaders.Accept.Clear();
-                    _apiKey = Environment.GetEnvironmentVariable("SENDGRID_APIKEY", EnvironmentVariableTarget.User);
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", this._apiKey);
+                    foreach (KeyValuePair<string, string> header in _requestHeaders)
+                    {
+                        if(header.Key == "Authorization")
+                        {
+                            string[] split = header.Value.Split(new char[0]);
+                            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(split[0], split[1]); ;
+                        }
+                        else if(header.Key == "Content-Type")
+                        {
+                            MediaType = header.Value;
+                        }
+                        else
+                        {
+                            client.DefaultRequestHeaders.Add(header.Key, header.Value);
+                        }
+                    }
 
                     switch (method)
                     {

@@ -10,7 +10,10 @@ namespace Example
         {
             String host = "https://e9sk3d3bfaikbpdq7.stoplight-proxy.io";
             Dictionary<String, String> requestHeaders = new Dictionary<String, String>();
-            requestHeaders.Add("X-Test", "test");
+            string apiKey = Environment.GetEnvironmentVariable("SENDGRID_APIKEY", EnvironmentVariableTarget.User);
+            requestHeaders.Add("Authorization", "Bearer " + apiKey);
+            requestHeaders.Add("Content-Type", "application/json");
+
             String version = "v3";
             dynamic client = new Client(host, requestHeaders, version);
 
