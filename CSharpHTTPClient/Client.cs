@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace SendGrid.CSharp.HTTP.Client
@@ -85,15 +86,27 @@ namespace SendGrid.CSharp.HTTP.Client
         // Catch final method call
         public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
         {
-            if(binder.Name == "Get")
+            switch(binder.Name.ToUpper())
             {
-                result = RequestAsync(Methods.GET).Result;
+                case("GET"):
+                    result = RequestAsync(Methods.GET).Result;
+                    return true;
+                case ("PUT"):
+                    result = RequestAsync(Methods.PUT).Result;
+                    return true;
+                case ("PATCH"):
+                    result = RequestAsync(Methods.PATCH).Result;
+                    return true;
+                case ("POST"):
+                    result = RequestAsync(Methods.POST).Result;
+                    return true;
+                case ("DELETE"):
+                    result = RequestAsync(Methods.POST).Result;
+                    return true;
+                default:
+                    result = null;
+                    return false;
             }
-            else
-            {
-                result = null;
-            }
-            return true;
         }
 
         private async Task<Response> RequestAsync(Methods method, string endpoint = null, String data = null)
@@ -114,6 +127,7 @@ namespace SendGrid.CSharp.HTTP.Client
                         else if(header.Key == "Content-Type")
                         {
                             MediaType = header.Value;
+                            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaType));
                         }
                         else
                         {
@@ -127,8 +141,34 @@ namespace SendGrid.CSharp.HTTP.Client
                             endpoint = BuildUrl();
                             HttpResponseMessage response = await client.GetAsync(endpoint);
                             return new Response(response.StatusCode, response.Content, response.Headers);
+                        case Methods.POST:
+                            response = await client.PostAsJsonAsync(endpoint, data);
+                            return new Response(response.StatusCode, response.Content, response.Headers);
+                        case Methods.PUT:
+                            HttpContent put_data = new StringContent(data, Encoding.UTF8, MediaType);
+                            response = await client.PutAsync(endpoint, put_data);
+                            return new Response(response.StatusCode, response.Content, response.Headers);
+                        case Methods.PATCH:
+                            endpoint = _host + endpoint;
+                            StringContent content = new StringContent(data.ToString(), Encoding.UTF8, MediaType);
+                            HttpRequestMessage request = new HttpRequestMessage
+                            {
+                                Method = new HttpMethod("PATCH"),
+                                RequestUri = new Uri(endpoint),
+                                Content = content
+                            };
+                            response = await client.SendAsync(request);
+                            return new Response(response.StatusCode, response.Content, response.Headers);
+                        case Methods.DELETE:
+                            response = await client.DeleteAsync(endpoint);
+                            return new Response(response.StatusCode, response.Content, response.Headers);
+                        default:
+                            response = new HttpResponseMessage();
+                            response.StatusCode = HttpStatusCode.MethodNotAllowed;
+                            var message = "{\"errors\":[{\"message\":\"Bad method call, supported methods are GET, POST, PUT, PATCH and DELETE\"}]}";
+                            response.Content = new StringContent(message);
+                            return new Response(response.StatusCode, response.Content, response.Headers);
                     }
-                    return null;
                 }
                 catch (Exception ex)
                 {
