@@ -121,7 +121,6 @@ namespace SendGrid.CSharp.HTTP.Client
                 return true;
             }
 
-            var paramDict = new Dictionary<string, object>();
             string query_params = null;
             string request_body = null;
             int i = 0;
