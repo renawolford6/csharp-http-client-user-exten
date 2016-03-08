@@ -22,7 +22,7 @@ namespace Example
             string query_params = @"{
                 'limit': 100
             }";
-            dynamic response = client.api_keys.get(query_params: query_params);
+            dynamic response = client.version("v3").api_keys.get(query_params: query_params);
             Console.WriteLine(response.StatusCode);
             Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
             Console.WriteLine(response.ResponseHeaders.ToString());

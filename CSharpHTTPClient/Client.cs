@@ -52,7 +52,15 @@ namespace SendGrid.CSharp.HTTP.Client
 
         private string BuildUrl(string query_params = null)
         {
-            string endpoint = _host + "/" + _version + _urlPath;
+            string endpoint = null;
+            if( _version != null)
+            {
+                endpoint = _host + "/" + _version + _urlPath;
+            }
+            else
+            {
+                endpoint = _host + _urlPath;
+            }
 
             if (query_params != null)
             {
@@ -85,6 +93,11 @@ namespace SendGrid.CSharp.HTTP.Client
             return new Client(_host, _requestHeaders, _version, endpoint);
         }
 
+        private void AddVersion(string version)
+        {
+            _version = version;
+        }
+
         // Magic method to handle special cases
         public Client _(string magic)
         {
@@ -101,6 +114,13 @@ namespace SendGrid.CSharp.HTTP.Client
         // Catch final method call
         public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
         {
+            if (binder.Name == "version")
+            {
+                AddVersion(args[0].ToString());
+                result = BuildClient();
+                return true;
+            }
+
             var paramDict = new Dictionary<string, object>();
             string query_params = null;
             string request_body = null;
