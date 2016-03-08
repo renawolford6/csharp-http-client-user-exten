@@ -17,13 +17,35 @@ namespace SendGrid.CSharp.HTTP.Client
         public HttpStatusCode StatusCode;
         public HttpContent ResponseBody;
         public HttpResponseHeaders ResponseHeaders;
+        public Dictionary<string, dynamic> DSResponseBody;
+        public Dictionary<string, string> DSResponseHeaders;
 
         public Response(HttpStatusCode statusCode, HttpContent responseBody, HttpResponseHeaders responseHeaders)
         {
             StatusCode = statusCode;
             ResponseBody = responseBody;
             ResponseHeaders = responseHeaders;
+            DSResponseBody = DeserializeResponseBody(responseBody);
+            DSResponseHeaders = DeserializeResponseHeaders(responseHeaders);
         }
+
+        public Dictionary<string, dynamic> DeserializeResponseBody(HttpContent content)
+        {
+            JavaScriptSerializer jss = new JavaScriptSerializer();
+            var ds_content = jss.Deserialize<Dictionary<string, dynamic>>(content.ReadAsStringAsync().Result);
+            return ds_content;
+        }
+
+        public Dictionary<string, string> DeserializeResponseHeaders(HttpResponseHeaders content)
+        {
+            var ds_content = new Dictionary<string, string>();
+            foreach (var pair in content )
+            {
+                ds_content.Add(pair.Key, pair.Value.First());
+            }
+            return ds_content;
+        }
+
     }
 
     public class Client : DynamicObject

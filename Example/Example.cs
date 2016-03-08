@@ -23,9 +23,19 @@ namespace Example
                 'limit': 100
             }";
             dynamic response = client.version("v3").api_keys.get(query_params: query_params);
-            Console.WriteLine(response.StatusCode);
-            Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
-            Console.WriteLine(response.ResponseHeaders.ToString());
+            //Console.WriteLine(response.StatusCode);
+            //Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
+            //Console.WriteLine(response.ResponseHeaders.ToString());
+
+            foreach ( var value in response.DSResponseBody["result"])
+            {
+                Console.WriteLine("name: {0}, api_key_id: {1}",value["name"], value["api_key_id"]);
+            }
+            foreach (var pair in response.DSResponseHeaders)
+            {
+                Console.WriteLine("{0}: {1}", pair.Key, pair.Value);
+            }
+            
 
             Console.WriteLine("\n\nPress any key to continue.");
             Console.ReadLine();
