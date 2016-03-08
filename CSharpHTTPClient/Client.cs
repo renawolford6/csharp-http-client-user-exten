@@ -7,6 +7,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
+using System.Web;
 
 namespace SendGrid.CSharp.HTTP.Client
 {
@@ -26,7 +28,6 @@ namespace SendGrid.CSharp.HTTP.Client
 
     public class Client : DynamicObject
     {
-        private string _apiKey;
         private string _host;
         private Dictionary <string,string> _requestHeaders;
         private string _version;
@@ -49,9 +50,23 @@ namespace SendGrid.CSharp.HTTP.Client
             _urlPath = (urlPath != null) ? urlPath : null;
         }
 
-        private string BuildUrl()
+        private string BuildUrl(string query_params = null)
         {
             string endpoint = _host + "/" + _version + _urlPath;
+
+            if (query_params != null)
+            {
+                JavaScriptSerializer jss = new JavaScriptSerializer();
+                var ds_query_params = jss.Deserialize<Dictionary<string, dynamic>>(query_params);
+                var query = HttpUtility.ParseQueryString(string.Empty);
+                foreach (var pair in ds_query_params)
+                {
+                    query[pair.Key] = pair.Value.ToString();
+                }
+                string queryString = query.ToString();
+                endpoint = endpoint + "?" + queryString;
+            }
+            
             return endpoint;
         }
 
@@ -86,36 +101,46 @@ namespace SendGrid.CSharp.HTTP.Client
         // Catch final method call
         public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
         {
-            switch(binder.Name.ToUpper())
+            var paramDict = new Dictionary<string, object>();
+            string query_params = null;
+            string request_body = null;
+            int i = 0;
+            foreach (object obj in args)
             {
-                case("GET"):
-                    result = RequestAsync(Methods.GET).Result;
-                    return true;
-                case ("PUT"):
-                    result = RequestAsync(Methods.PUT).Result;
-                    return true;
-                case ("PATCH"):
-                    result = RequestAsync(Methods.PATCH).Result;
-                    return true;
-                case ("POST"):
-                    result = RequestAsync(Methods.POST).Result;
-                    return true;
-                case ("DELETE"):
-                    result = RequestAsync(Methods.POST).Result;
-                    return true;
-                default:
-                    result = null;
-                    return false;
+                string name = binder.CallInfo.ArgumentNames.Count > i ?
+                   binder.CallInfo.ArgumentNames[i] : null;
+                if(name == "query_params")
+                {
+                    query_params = obj.ToString();
+                }
+                else if (name == "request_body")
+                {
+                    request_body = obj.ToString();
+                }
+                i++;
             }
+
+            if( Enum.IsDefined(typeof(Methods), binder.Name.ToUpper()))
+            {
+                result = RequestAsync(binder.Name.ToUpper(), request_body: request_body, query_params: query_params).Result;
+                return true;
+            }
+            else
+            {
+                result = null;
+                return false;
+            }
+ 
         }
 
-        private async Task<Response> RequestAsync(Methods method, string endpoint = null, String data = null)
+        private async Task<Response> RequestAsync(string method, String request_body = null, String query_params = null)
         {
             using (var client = new HttpClient())
             {
                 try
                 {
                     client.BaseAddress = new Uri(_host);
+                    string endpoint = BuildUrl(query_params);
                     client.DefaultRequestHeaders.Accept.Clear();
                     foreach (KeyValuePair<string, string> header in _requestHeaders)
                     {
@@ -135,40 +160,21 @@ namespace SendGrid.CSharp.HTTP.Client
                         }
                     }
 
-                    switch (method)
+                    StringContent content = null;
+                    if (request_body != null)
                     {
-                        case Methods.GET:
-                            endpoint = BuildUrl();
-                            HttpResponseMessage response = await client.GetAsync(endpoint);
-                            return new Response(response.StatusCode, response.Content, response.Headers);
-                        case Methods.POST:
-                            response = await client.PostAsJsonAsync(endpoint, data);
-                            return new Response(response.StatusCode, response.Content, response.Headers);
-                        case Methods.PUT:
-                            HttpContent put_data = new StringContent(data, Encoding.UTF8, MediaType);
-                            response = await client.PutAsync(endpoint, put_data);
-                            return new Response(response.StatusCode, response.Content, response.Headers);
-                        case Methods.PATCH:
-                            endpoint = _host + endpoint;
-                            StringContent content = new StringContent(data.ToString(), Encoding.UTF8, MediaType);
-                            HttpRequestMessage request = new HttpRequestMessage
-                            {
-                                Method = new HttpMethod("PATCH"),
-                                RequestUri = new Uri(endpoint),
-                                Content = content
-                            };
-                            response = await client.SendAsync(request);
-                            return new Response(response.StatusCode, response.Content, response.Headers);
-                        case Methods.DELETE:
-                            response = await client.DeleteAsync(endpoint);
-                            return new Response(response.StatusCode, response.Content, response.Headers);
-                        default:
-                            response = new HttpResponseMessage();
-                            response.StatusCode = HttpStatusCode.MethodNotAllowed;
-                            var message = "{\"errors\":[{\"message\":\"Bad method call, supported methods are GET, POST, PUT, PATCH and DELETE\"}]}";
-                            response.Content = new StringContent(message);
-                            return new Response(response.StatusCode, response.Content, response.Headers);
+                        content = new StringContent(request_body.ToString().Replace("'", "\""), Encoding.UTF8, MediaType);
                     }
+
+                    HttpRequestMessage request = new HttpRequestMessage
+                    {
+                        Method = new HttpMethod(method),
+                        RequestUri = new Uri(endpoint),
+                        Content = content
+                    };
+                    HttpResponseMessage response = await client.SendAsync(request);
+                    return new Response(response.StatusCode, response.Content, response.Headers);
+
                 }
                 catch (Exception ex)
                 {

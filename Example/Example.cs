@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using SendGrid.CSharp.HTTP.Client;
+using System.Web.Script.Serialization;
 
 namespace Example
 {
@@ -17,16 +18,79 @@ namespace Example
             String version = "v3";
             dynamic client = new Client(host, requestHeaders, version);
 
-            dynamic response0 = client.asm.suppressions.global._("test1+v2@example.com").Get();
-            Console.WriteLine(response0.StatusCode);
-            Console.WriteLine(response0.ResponseBody.ReadAsStringAsync().Result);
-            Console.WriteLine(response0.ResponseHeaders.ToString());
+            // GET Collection
+            string query_params = @"{
+                'limit': 100
+            }";
+            dynamic response = client.api_keys.get(query_params: query_params);
+            Console.WriteLine(response.StatusCode);
+            Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
+            Console.WriteLine(response.ResponseHeaders.ToString());
 
-            dynamic response1 = client.api_keys;
-            Response response2 = response1.Get();
-            Console.WriteLine(response2.StatusCode);
-            Console.WriteLine(response2.ResponseBody.ReadAsStringAsync().Result);
-            Console.WriteLine(response2.ResponseHeaders.ToString());
+            Console.WriteLine("\n\nPress any key to continue.");
+            Console.ReadLine();
+
+            // POST
+            string request_body = @"{
+                'name': 'My API Key 5',
+                'scopes': [
+                    'mail.send',
+                    'alerts.create',
+                    'alerts.read'
+                ]
+            }";
+            response = client.api_keys.post(request_body: request_body);
+            Console.WriteLine(response.StatusCode);
+            Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
+            Console.WriteLine(response.ResponseHeaders.ToString());
+            JavaScriptSerializer jss = new JavaScriptSerializer();
+            var ds_response = jss.Deserialize<Dictionary<string, dynamic>>(response.ResponseBody.ReadAsStringAsync().Result);
+            string api_key_id = ds_response["api_key_id"];
+
+            Console.WriteLine("\n\nPress any key to continue.");
+            Console.ReadLine();
+
+            // GET Single
+            response = client.api_keys._(api_key_id).get();
+            Console.WriteLine(response.StatusCode);
+            Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
+            Console.WriteLine(response.ResponseHeaders.ToString());
+
+            Console.WriteLine("\n\nPress any key to continue.");
+            Console.ReadLine();
+
+            // PATCH
+            request_body = @"{
+                'name': 'A New Hope'
+            }";
+            response = client.api_keys._(api_key_id).patch(request_body: request_body);
+            Console.WriteLine(response.StatusCode);
+            Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
+            Console.WriteLine(response.ResponseHeaders.ToString());
+
+            Console.WriteLine("\n\nPress any key to continue.");
+            Console.ReadLine();
+
+            // PUT
+            request_body = @"{
+                'name': 'A New Hope',
+                'scopes': [
+                    'user.profile.read',
+                    'user.profile.update'
+                ]
+            }";
+            response = client.api_keys._(api_key_id).put(request_body: request_body);
+            Console.WriteLine(response.StatusCode);
+            Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
+            Console.WriteLine(response.ResponseHeaders.ToString());
+
+            Console.WriteLine("\n\nPress any key to continue.");
+            Console.ReadLine();
+
+            // DELETE
+            response = client.api_keys._(api_key_id).delete();
+            Console.WriteLine(response.StatusCode);
+            Console.WriteLine(response.ResponseHeaders.ToString());
 
             Console.WriteLine("\n\nPress any key to continue.");
             Console.ReadLine();
