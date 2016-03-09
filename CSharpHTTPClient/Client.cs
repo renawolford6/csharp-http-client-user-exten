@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Web;
+using System.Diagnostics;
 
 namespace SendGrid.CSharp.HTTP.Client
 {
@@ -17,43 +18,39 @@ namespace SendGrid.CSharp.HTTP.Client
         public HttpStatusCode StatusCode;
         public HttpContent ResponseBody;
         public HttpResponseHeaders ResponseHeaders;
-        public Dictionary<string, dynamic> DSResponseBody;
-        public Dictionary<string, string> DSResponseHeaders;
 
         public Response(HttpStatusCode statusCode, HttpContent responseBody, HttpResponseHeaders responseHeaders)
         {
             StatusCode = statusCode;
             ResponseBody = responseBody;
             ResponseHeaders = responseHeaders;
-            DSResponseBody = DeserializeResponseBody(responseBody);
-            DSResponseHeaders = DeserializeResponseHeaders(responseHeaders);
         }
 
-        public Dictionary<string, dynamic> DeserializeResponseBody(HttpContent content)
+        public virtual Dictionary<string, dynamic> DeserializeResponseBody(HttpContent content)
         {
             JavaScriptSerializer jss = new JavaScriptSerializer();
-            var ds_content = jss.Deserialize<Dictionary<string, dynamic>>(content.ReadAsStringAsync().Result);
-            return ds_content;
+            var dsContent = jss.Deserialize<Dictionary<string, dynamic>>(content.ReadAsStringAsync().Result);
+            return dsContent;
         }
 
-        public Dictionary<string, string> DeserializeResponseHeaders(HttpResponseHeaders content)
+        public virtual Dictionary<string, string> DeserializeResponseHeaders(HttpResponseHeaders content)
         {
-            var ds_content = new Dictionary<string, string>();
+            var dsContent = new Dictionary<string, string>();
             foreach (var pair in content )
             {
-                ds_content.Add(pair.Key, pair.Value.First());
+                dsContent.Add(pair.Key, pair.Value.First());
             }
-            return ds_content;
+            return dsContent;
         }
 
     }
 
     public class Client : DynamicObject
     {
-        private string _host;
-        private Dictionary <string,string> _requestHeaders;
-        private string _version;
-        private string _urlPath;
+        public string Host;
+        public Dictionary <string,string> RequestHeaders;
+        public string Version;
+        public string UrlPath;
         public string MediaType;
         public enum Methods
         {
@@ -62,26 +59,26 @@ namespace SendGrid.CSharp.HTTP.Client
 
         public Client(string host, Dictionary<string,string> requestHeaders = null, string version = null, string urlPath = null)
         {
-            _host = host;
+            Host = host;
             if(requestHeaders != null)
             {
-                _requestHeaders = (_requestHeaders != null)
-                    ? _requestHeaders.Union(requestHeaders).ToDictionary(pair => pair.Key, pair => pair.Value) : requestHeaders;
+                RequestHeaders = (RequestHeaders != null)
+                    ? RequestHeaders.Union(requestHeaders).ToDictionary(pair => pair.Key, pair => pair.Value) : requestHeaders;
             }
-            _version = (version != null) ? version : null;
-            _urlPath = (urlPath != null) ? urlPath : null;
+            Version = (version != null) ? version : null;
+            UrlPath = (urlPath != null) ? urlPath : null;
         }
 
         private string BuildUrl(string query_params = null)
         {
             string endpoint = null;
-            if( _version != null)
+            if( Version != null)
             {
-                endpoint = _host + "/" + _version + _urlPath;
+                endpoint = Host + "/" + Version + UrlPath;
             }
             else
             {
-                endpoint = _host + _urlPath;
+                endpoint = Host + UrlPath;
             }
 
             if (query_params != null)
@@ -105,19 +102,25 @@ namespace SendGrid.CSharp.HTTP.Client
             string endpoint;
             if (name != null)
             {
-                endpoint = _urlPath + "/" + name;
+                endpoint = UrlPath + "/" + name;
             }
             else
             {
-                endpoint = _urlPath;
+                endpoint = UrlPath;
             }
-            _urlPath = null; // Reset the current object's state before we return a new one
-            return new Client(_host, _requestHeaders, _version, endpoint);
+            UrlPath = null; // Reset the current object's state before we return a new one
+            return new Client(Host, RequestHeaders, Version, endpoint);
         }
 
-        private void AddVersion(string version)
+        public virtual AuthenticationHeaderValue AddAuthorization(KeyValuePair<string, string> header)
         {
-            _version = version;
+            string[] split = header.Value.Split(new char[0]);
+            return new AuthenticationHeaderValue(split[0], split[1]);
+        }
+
+        public virtual void AddVersion(string version)
+        {
+            Version = version;
         }
 
         // Magic method to handle special cases
@@ -171,7 +174,13 @@ namespace SendGrid.CSharp.HTTP.Client
                 result = null;
                 return false;
             }
- 
+
+        }
+
+        public async virtual Task<Response> MakeRequest(HttpClient client, HttpRequestMessage request)
+        {
+            HttpResponseMessage response = await client.SendAsync(request);
+            return new Response(response.StatusCode, response.Content, response.Headers);
         }
 
         private async Task<Response> RequestAsync(string method, String request_body = null, String query_params = null)
@@ -180,24 +189,26 @@ namespace SendGrid.CSharp.HTTP.Client
             {
                 try
                 {
-                    client.BaseAddress = new Uri(_host);
+                    client.BaseAddress = new Uri(Host);
                     string endpoint = BuildUrl(query_params);
                     client.DefaultRequestHeaders.Accept.Clear();
-                    foreach (KeyValuePair<string, string> header in _requestHeaders)
+                    if(RequestHeaders != null)
                     {
-                        if(header.Key == "Authorization")
+                        foreach (KeyValuePair<string, string> header in RequestHeaders)
                         {
-                            string[] split = header.Value.Split(new char[0]);
-                            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(split[0], split[1]); ;
-                        }
-                        else if(header.Key == "Content-Type")
-                        {
-                            MediaType = header.Value;
-                            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaType));
-                        }
-                        else
-                        {
-                            client.DefaultRequestHeaders.Add(header.Key, header.Value);
+                            if (header.Key == "Authorization")
+                            {
+                                client.DefaultRequestHeaders.Authorization = AddAuthorization(header);
+                            }
+                            else if (header.Key == "Content-Type")
+                            {
+                                MediaType = header.Value;
+                                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaType));
+                            }
+                            else
+                            {
+                                client.DefaultRequestHeaders.Add(header.Key, header.Value);
+                            }
                         }
                     }
 
@@ -213,8 +224,7 @@ namespace SendGrid.CSharp.HTTP.Client
                         RequestUri = new Uri(endpoint),
                         Content = content
                     };
-                    HttpResponseMessage response = await client.SendAsync(request);
-                    return new Response(response.StatusCode, response.Content, response.Headers);
+                    return await MakeRequest(client, request);
 
                 }
                 catch (Exception ex)

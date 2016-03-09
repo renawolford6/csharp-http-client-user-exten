@@ -26,12 +26,13 @@ namespace Example
             //Console.WriteLine(response.StatusCode);
             //Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
             //Console.WriteLine(response.ResponseHeaders.ToString());
-
-            foreach ( var value in response.DSResponseBody["result"])
+            var dssResponseBody = response.DeserializeResponseBody(response.ResponseBody);
+            foreach ( var value in dssResponseBody["result"])
             {
                 Console.WriteLine("name: {0}, api_key_id: {1}",value["name"], value["api_key_id"]);
             }
-            foreach (var pair in response.DSResponseHeaders)
+            var dssResponseHeaders = response.DeserializeResponseHeaders(response.ResponseHeaders);
+            foreach (var pair in dssResponseHeaders)
             {
                 Console.WriteLine("{0}: {1}", pair.Key, pair.Value);
             }
