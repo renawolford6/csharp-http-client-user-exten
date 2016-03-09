@@ -23,7 +23,7 @@ using SendGrid.CSharp.HTTP.Client;
 globalRequestHeaders.Add("Authorization", "Bearer XXXXXXX");
 dynamic client = new Client(host: baseUrl, requestHeaders: globalRequestHeaders);
 string queryParams = "{'Hello': 0, 'World': 1}";
-string requestHeaders = "{'X-Test', 'test'}";
+requestHeaders.Add("X-Test", "test");
 string requestBody = "{'some': 1, 'awesome': 2, 'data': 3}";
 var response = client.your.api._(param).call.post(requestBody: requestBody,
                                                   queryParams: queryParams,
@@ -77,10 +77,10 @@ class Example
         dynamic client = new Client(host, requestHeaders, version);
 
         // GET Collection
-        string query_params = @"{
+        string queryParams = @"{
             'limit': 100
         }";
-        dynamic response = client.version("v3").api_keys.get(query_params: query_params);
+        dynamic response = client.version("v3").api_keys.get(queryParams: queryParams);
         var dssResponseBody = response.DeserializeResponseBody(response.ResponseBody);
         foreach ( var value in dssResponseBody["result"])
         {
@@ -97,7 +97,7 @@ class Example
         Console.ReadLine();
 
         // POST
-        string request_body = @"{
+        string requestBody = @"{
             'name': 'My API Key 5',
             'scopes': [
                 'mail.send',
@@ -105,7 +105,7 @@ class Example
                 'alerts.read'
             ]
         }";
-        response = client.api_keys.post(request_body: request_body);
+        response = client.api_keys.post(requestBody: requestBody);
         Console.WriteLine(response.StatusCode);
         Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
         Console.WriteLine(response.ResponseHeaders.ToString());
@@ -129,7 +129,7 @@ class Example
         request_body = @"{
             'name': 'A New Hope'
         }";
-        response = client.api_keys._(api_key_id).patch(request_body: request_body);
+        response = client.api_keys._(api_key_id).patch(requestBody: requestBody);
         Console.WriteLine(response.StatusCode);
         Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
         Console.WriteLine(response.ResponseHeaders.ToString());
@@ -145,7 +145,7 @@ class Example
                 'user.profile.update'
             ]
         }";
-        response = client.api_keys._(api_key_id).put(request_body: request_body);
+        response = client.api_keys._(api_key_id).put(requestBody: requestBody);
         Console.WriteLine(response.StatusCode);
         Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
         Console.WriteLine(response.ResponseHeaders.ToString());
