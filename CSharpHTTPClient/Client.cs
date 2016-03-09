@@ -77,7 +77,7 @@ namespace SendGrid.CSharp.HTTP.Client
         ///     REST API client.
         /// </summary>
         /// <param name="host">Base url (e.g. https://api.sendgrid.com)</param>
-        /// <param name="requestHeaders">A dictoinary of request headers</param>
+        /// <param name="requestHeaders">A dictionary of request headers</param>
         /// <param name="version">API version, override AddVersion to customize</param>
         /// <param name="urlPath">Path to endpoint (e.g. /path/to/endpoint)</param>
         /// <returns>Fluent interface to a REST API</returns>
@@ -86,19 +86,28 @@ namespace SendGrid.CSharp.HTTP.Client
             Host = host;
             if(requestHeaders != null)
             {
-                RequestHeaders = (RequestHeaders != null)
-                    ? RequestHeaders.Union(requestHeaders).ToDictionary(pair => pair.Key, pair => pair.Value) : requestHeaders;
+                AddRequestHeader(requestHeaders);
             }
             Version = (version != null) ? version : null;
             UrlPath = (urlPath != null) ? urlPath : null;
         }
 
         /// <summary>
+        ///     Add requestHeaders to the API call
+        /// </summary>
+        /// <param name="requestHeaders">A dictionary of request headers</param>
+        public void AddRequestHeader(Dictionary<string, string> requestHeaders)
+        {
+            RequestHeaders = (RequestHeaders != null)
+                    ? RequestHeaders.Union(requestHeaders).ToDictionary(pair => pair.Key, pair => pair.Value) : requestHeaders;
+        }
+
+        /// <summary>
         ///     Build the final URL
         /// </summary>
-        /// <param name="query_params">A string of JSON formatted query parameters (e.g {'param': 'param_value'})</param>
+        /// <param name="queryParams">A string of JSON formatted query parameters (e.g {'param': 'param_value'})</param>
         /// <returns>Final URL</returns>
-        private string BuildUrl(string query_params = null)
+        private string BuildUrl(string queryParams = null)
         {
             string endpoint = null;
 
@@ -111,10 +120,10 @@ namespace SendGrid.CSharp.HTTP.Client
                 endpoint = Host + UrlPath;
             }
 
-            if (query_params != null)
+            if (queryParams != null)
             {
                 JavaScriptSerializer jss = new JavaScriptSerializer();
-                var ds_query_params = jss.Deserialize<Dictionary<string, dynamic>>(query_params);
+                var ds_query_params = jss.Deserialize<Dictionary<string, dynamic>>(queryParams);
                 var query = HttpUtility.ParseQueryString(string.Empty);
                 foreach (var pair in ds_query_params)
                 {
@@ -211,25 +220,29 @@ namespace SendGrid.CSharp.HTTP.Client
 
             if( Enum.IsDefined(typeof(Methods), binder.Name.ToUpper()))
             {
-                string query_params = null;
-                string request_body = null;
+                string queryParams = null;
+                string requestBody = null;
                 int i = 0;
 
                 foreach (object obj in args)
                 {
                     string name = binder.CallInfo.ArgumentNames.Count > i ?
                        binder.CallInfo.ArgumentNames[i] : null;
-                    if (name == "query_params")
+                    if (name == "queryParams")
                     {
-                        query_params = obj.ToString();
+                        queryParams = obj.ToString();
                     }
-                    else if (name == "request_body")
+                    else if (name == "requestBody")
                     {
-                        request_body = obj.ToString();
+                        requestBody = obj.ToString();
+                    }
+                    else if (name == "requestHeaders")
+                    {
+                        AddRequestHeader((Dictionary<string, string>)obj);
                     }
                     i++;
                 }
-                result = RequestAsync(binder.Name.ToUpper(), request_body: request_body, query_params: query_params).Result;
+                result = RequestAsync(binder.Name.ToUpper(), requestBody: requestBody, queryParams: queryParams).Result;
                 return true;
             }
             else
@@ -256,10 +269,10 @@ namespace SendGrid.CSharp.HTTP.Client
         ///     Prepare for async call to the API server
         /// </summary>
         /// <param name="method">HTTP verb</param>
-        /// <param name="request_body">JSON formatted string</param>
-        /// <param name="query_params">JSON formatted queary paramaters</param>
+        /// <param name="requestBody">JSON formatted string</param>
+        /// <param name="queryParams">JSON formatted queary paramaters</param>
         /// <returns>Response object</returns>
-        private async Task<Response> RequestAsync(string method, String request_body = null, String query_params = null)
+        private async Task<Response> RequestAsync(string method, String requestBody = null, String queryParams = null)
         {
             using (var client = new HttpClient())
             {
@@ -267,7 +280,7 @@ namespace SendGrid.CSharp.HTTP.Client
                 {
                     // Build the URL
                     client.BaseAddress = new Uri(Host);
-                    string endpoint = BuildUrl(query_params);
+                    string endpoint = BuildUrl(queryParams);
 
                     // Build the request headers
                     client.DefaultRequestHeaders.Accept.Clear();
@@ -293,9 +306,9 @@ namespace SendGrid.CSharp.HTTP.Client
 
                     // Build the request body
                     StringContent content = null;
-                    if (request_body != null)
+                    if (requestBody != null)
                     {
-                        content = new StringContent(request_body.ToString().Replace("'", "\""), Encoding.UTF8, MediaType);
+                        content = new StringContent(requestBody.ToString().Replace("'", "\""), Encoding.UTF8, MediaType);
                     }
 
                     // Build the final request

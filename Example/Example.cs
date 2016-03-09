@@ -13,19 +13,21 @@ namespace Example
         static void Main(string[] args)
         {
             String host = "https://e9sk3d3bfaikbpdq7.stoplight-proxy.io";
-            Dictionary<String, String> requestHeaders = new Dictionary<String, String>();
+            Dictionary<String, String> globalRequestHeaders = new Dictionary<String, String>();
             string apiKey = Environment.GetEnvironmentVariable("SENDGRID_APIKEY", EnvironmentVariableTarget.User);
-            requestHeaders.Add("Authorization", "Bearer " + apiKey);
-            requestHeaders.Add("Content-Type", "application/json");
+            globalRequestHeaders.Add("Authorization", "Bearer " + apiKey);
+            globalRequestHeaders.Add("Content-Type", "application/json");
 
             String version = "v3";
-            dynamic client = new Client(host, requestHeaders, version);
+            dynamic client = new Client(host: host, requestHeaders: globalRequestHeaders, version: version);
 
             // GET Collection
-            string query_params = @"{
+            string queryParams = @"{
                 'limit': 100
             }";
-            dynamic response = client.version("v3").api_keys.get(query_params: query_params);
+            Dictionary<String, String> requestHeaders = new Dictionary<String, String>();
+            requestHeaders.Add("X-Test", "test");
+            dynamic response = client.version("v3").api_keys.get(queryParams: queryParams, requestHeaders: requestHeaders);
             // Console.WriteLine(response.StatusCode);
             // Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
             // Console.WriteLine(response.ResponseHeaders.ToString());
@@ -46,7 +48,7 @@ namespace Example
             Console.ReadLine();
 
             // POST
-            string request_body = @"{
+            string requestBody = @"{
                 'name': 'My API Key 5',
                 'scopes': [
                     'mail.send',
@@ -54,7 +56,9 @@ namespace Example
                     'alerts.read'
                 ]
             }";
-            response = client.api_keys.post(request_body: request_body);
+            requestHeaders.Clear();
+            requestHeaders.Add("X-Test", "test2");
+            response = client.api_keys.post(requestBody: requestBody, requestHeaders: requestHeaders);
             Console.WriteLine(response.StatusCode);
             Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
             Console.WriteLine(response.ResponseHeaders.ToString());
@@ -75,10 +79,10 @@ namespace Example
             Console.ReadLine();
 
             // PATCH
-            request_body = @"{
+            requestBody = @"{
                 'name': 'A New Hope'
             }";
-            response = client.api_keys._(api_key_id).patch(request_body: request_body);
+            response = client.api_keys._(api_key_id).patch(requestBody: requestBody);
             Console.WriteLine(response.StatusCode);
             Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
             Console.WriteLine(response.ResponseHeaders.ToString());
@@ -87,14 +91,14 @@ namespace Example
             Console.ReadLine();
 
             // PUT
-            request_body = @"{
+            requestBody = @"{
                 'name': 'A New Hope',
                 'scopes': [
                     'user.profile.read',
                     'user.profile.update'
                 ]
             }";
-            response = client.api_keys._(api_key_id).put(request_body: request_body);
+            response = client.api_keys._(api_key_id).put(requestBody: requestBody);
             Console.WriteLine(response.StatusCode);
             Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
             Console.WriteLine(response.ResponseHeaders.ToString());
