@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using SendGrid.CSharp.HTTP.Client;
 using System.Web.Script.Serialization;
 
+// This is a working example, using the SendGrid API
+// You will need a SendGrid account and an active API Key
+// They key should be stored in an environment variable called SENDGRID_APIKEY
 namespace Example
 {
     class Example
@@ -23,22 +26,23 @@ namespace Example
                 'limit': 100
             }";
             dynamic response = client.version("v3").api_keys.get(query_params: query_params);
-            //Console.WriteLine(response.StatusCode);
-            //Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
-            //Console.WriteLine(response.ResponseHeaders.ToString());
+            // Console.WriteLine(response.StatusCode);
+            // Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
+            // Console.WriteLine(response.ResponseHeaders.ToString());
+
             var dssResponseBody = response.DeserializeResponseBody(response.ResponseBody);
             foreach ( var value in dssResponseBody["result"])
             {
                 Console.WriteLine("name: {0}, api_key_id: {1}",value["name"], value["api_key_id"]);
             }
+
             var dssResponseHeaders = response.DeserializeResponseHeaders(response.ResponseHeaders);
             foreach (var pair in dssResponseHeaders)
             {
                 Console.WriteLine("{0}: {1}", pair.Key, pair.Value);
             }
-            
 
-            Console.WriteLine("\n\nPress any key to continue.");
+            Console.WriteLine("\n\nPress any key to continue to POST.");
             Console.ReadLine();
 
             // POST
@@ -58,7 +62,7 @@ namespace Example
             var ds_response = jss.Deserialize<Dictionary<string, dynamic>>(response.ResponseBody.ReadAsStringAsync().Result);
             string api_key_id = ds_response["api_key_id"];
 
-            Console.WriteLine("\n\nPress any key to continue.");
+            Console.WriteLine("\n\nPress any key to continue to GET single.");
             Console.ReadLine();
 
             // GET Single
@@ -67,7 +71,7 @@ namespace Example
             Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
             Console.WriteLine(response.ResponseHeaders.ToString());
 
-            Console.WriteLine("\n\nPress any key to continue.");
+            Console.WriteLine("\n\nPress any key to continue to PATCH.");
             Console.ReadLine();
 
             // PATCH
@@ -79,7 +83,7 @@ namespace Example
             Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
             Console.WriteLine(response.ResponseHeaders.ToString());
 
-            Console.WriteLine("\n\nPress any key to continue.");
+            Console.WriteLine("\n\nPress any key to continue to PUT.");
             Console.ReadLine();
 
             // PUT
@@ -95,7 +99,7 @@ namespace Example
             Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
             Console.WriteLine(response.ResponseHeaders.ToString());
 
-            Console.WriteLine("\n\nPress any key to continue.");
+            Console.WriteLine("\n\nPress any key to continue to DELETE.");
             Console.ReadLine();
 
             // DELETE
@@ -103,7 +107,7 @@ namespace Example
             Console.WriteLine(response.StatusCode);
             Console.WriteLine(response.ResponseHeaders.ToString());
 
-            Console.WriteLine("\n\nPress any key to continue.");
+            Console.WriteLine("\n\nPress any key to exit.");
             Console.ReadLine();
         }
     }

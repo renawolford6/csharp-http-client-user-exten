@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using System.Text;
 using System.Net;
-using System.Diagnostics;
 
 namespace UnitTest
 {
+
+    // Mock the Client so that we intercept network calls
     public class MockClient : Client
     {
         public MockClient(string host, Dictionary<string, string> requestHeaders = null, string version = null, string urlPath = null) : base (host, requestHeaders, version, urlPath)

@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Web;
-using System.Diagnostics;
 
 namespace SendGrid.CSharp.HTTP.Client
 {
@@ -19,6 +18,12 @@ namespace SendGrid.CSharp.HTTP.Client
         public HttpContent ResponseBody;
         public HttpResponseHeaders ResponseHeaders;
 
+        /// <summary>
+        ///     Holds the response from an API call.
+        /// </summary>
+        /// <param name="statusCode">https://msdn.microsoft.com/en-us/library/system.net.httpstatuscode(v=vs.110).aspx</param>
+        /// <param name="responseBody">https://msdn.microsoft.com/en-us/library/system.net.http.httpcontent(v=vs.118).aspx</param>
+        /// <param name="responseHeaders">https://msdn.microsoft.com/en-us/library/system.net.http.headers.httpresponseheaders(v=vs.118).aspx</param>
         public Response(HttpStatusCode statusCode, HttpContent responseBody, HttpResponseHeaders responseHeaders)
         {
             StatusCode = statusCode;
@@ -26,6 +31,11 @@ namespace SendGrid.CSharp.HTTP.Client
             ResponseHeaders = responseHeaders;
         }
 
+        /// <summary>
+        ///     Converts string formatted response body to a Dictionary.
+        /// </summary>
+        /// <param name="content">https://msdn.microsoft.com/en-us/library/system.net.http.httpcontent(v=vs.118).aspx</param>
+        /// <returns>Dictionary object representation of HttpContent</returns>
         public virtual Dictionary<string, dynamic> DeserializeResponseBody(HttpContent content)
         {
             JavaScriptSerializer jss = new JavaScriptSerializer();
@@ -33,10 +43,15 @@ namespace SendGrid.CSharp.HTTP.Client
             return dsContent;
         }
 
+        /// <summary>
+        ///     Converts string formatted response headers to a Dictionary.
+        /// </summary>
+        /// <param name="content">https://msdn.microsoft.com/en-us/library/system.net.http.headers.httpresponseheaders(v=vs.118).aspx</param>
+        /// <returns>Dictionary object representation of  HttpRepsonseHeaders</returns>
         public virtual Dictionary<string, string> DeserializeResponseHeaders(HttpResponseHeaders content)
         {
             var dsContent = new Dictionary<string, string>();
-            foreach (var pair in content )
+            foreach (var pair in content)
             {
                 dsContent.Add(pair.Key, pair.Value.First());
             }
@@ -44,6 +59,7 @@ namespace SendGrid.CSharp.HTTP.Client
         }
 
     }
+
 
     public class Client : DynamicObject
     {
@@ -57,6 +73,14 @@ namespace SendGrid.CSharp.HTTP.Client
             DELETE, GET, PATCH, POST, PUT
         }
 
+        /// <summary>
+        ///     REST API client.
+        /// </summary>
+        /// <param name="host">Base url (e.g. https://api.sendgrid.com)</param>
+        /// <param name="requestHeaders">A dictoinary of request headers</param>
+        /// <param name="version">API version, override AddVersion to customize</param>
+        /// <param name="urlPath">Path to endpoint (e.g. /path/to/endpoint)</param>
+        /// <returns>Fluent interface to a REST API</returns>
         public Client(string host, Dictionary<string,string> requestHeaders = null, string version = null, string urlPath = null)
         {
             Host = host;
@@ -69,9 +93,15 @@ namespace SendGrid.CSharp.HTTP.Client
             UrlPath = (urlPath != null) ? urlPath : null;
         }
 
+        /// <summary>
+        ///     Build the final URL
+        /// </summary>
+        /// <param name="query_params">A string of JSON formatted query parameters (e.g {'param': 'param_value'})</param>
+        /// <returns>Final URL</returns>
         private string BuildUrl(string query_params = null)
         {
             string endpoint = null;
+
             if( Version != null)
             {
                 endpoint = Host + "/" + Version + UrlPath;
@@ -93,13 +123,19 @@ namespace SendGrid.CSharp.HTTP.Client
                 string queryString = query.ToString();
                 endpoint = endpoint + "?" + queryString;
             }
-            
+
             return endpoint;
         }
 
+        /// <summary>
+        ///     Create a new Client object for method chaining
+        /// </summary>
+        /// <param name="name">Name of url segment to add to the URL</param>
+        /// <returns>A new client object with "name" added to the URL</returns>
         private Client BuildClient(string name = null)
         {
             string endpoint;
+
             if (name != null)
             {
                 endpoint = UrlPath + "/" + name;
@@ -108,35 +144,62 @@ namespace SendGrid.CSharp.HTTP.Client
             {
                 endpoint = UrlPath;
             }
+
             UrlPath = null; // Reset the current object's state before we return a new one
             return new Client(Host, RequestHeaders, Version, endpoint);
+
         }
 
+        /// <summary>
+        ///     Add the authorization header, override to customize
+        /// </summary>
+        /// <param name="header">Authoriztion header</param>
+        /// <returns>Authorization value to add to the header</returns>
         public virtual AuthenticationHeaderValue AddAuthorization(KeyValuePair<string, string> header)
         {
             string[] split = header.Value.Split(new char[0]);
             return new AuthenticationHeaderValue(split[0], split[1]);
         }
 
+        /// <summary>
+        ///     Add the version of the API, override to customize
+        /// </summary>
+        /// <param name="version">Version string to add to the URL</param>
         public virtual void AddVersion(string version)
         {
             Version = version;
         }
 
-        // Magic method to handle special cases
-        public Client _(string magic)
+        /// <summary>
+        ///     Deal with special cases and URL parameters
+        /// </summary>
+        /// <param name="name">Name of URL segment</param>
+        /// <returns>A new client object with "name" added to the URL</returns>
+        public Client _(string name)
         {
-            return BuildClient(magic);
+            return BuildClient(name);
         }
 
-        // Reflection
+        /// <summary>
+        ///     Reflection. We capture undefined variable access here
+        /// </summary>
+        /// <param name="binder">The calling object properties</param>
+        /// <param name="result">The callback</param>
+        /// <returns>The callback returns a new client object with "name" added to the URL</returns>
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
             result = BuildClient(binder.Name);
             return true;
         }
 
-        // Catch final method call
+        /// <summary>
+        ///     Reflection. We capture the final method call here
+        /// </summary>
+        /// <param name="binder">The calling object properties</param>
+        /// <param name="args">The calling object's arguements</param>
+        /// <param name="result">If "version", returns new client with version attached
+        ///                      If "method", returns a Response object</param>
+        /// <returns>The callback is described in "result"</returns>
         public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
         {
             if (binder.Name == "version")
@@ -146,26 +209,26 @@ namespace SendGrid.CSharp.HTTP.Client
                 return true;
             }
 
-            string query_params = null;
-            string request_body = null;
-            int i = 0;
-            foreach (object obj in args)
-            {
-                string name = binder.CallInfo.ArgumentNames.Count > i ?
-                   binder.CallInfo.ArgumentNames[i] : null;
-                if(name == "query_params")
-                {
-                    query_params = obj.ToString();
-                }
-                else if (name == "request_body")
-                {
-                    request_body = obj.ToString();
-                }
-                i++;
-            }
-
             if( Enum.IsDefined(typeof(Methods), binder.Name.ToUpper()))
             {
+                string query_params = null;
+                string request_body = null;
+                int i = 0;
+
+                foreach (object obj in args)
+                {
+                    string name = binder.CallInfo.ArgumentNames.Count > i ?
+                       binder.CallInfo.ArgumentNames[i] : null;
+                    if (name == "query_params")
+                    {
+                        query_params = obj.ToString();
+                    }
+                    else if (name == "request_body")
+                    {
+                        request_body = obj.ToString();
+                    }
+                    i++;
+                }
                 result = RequestAsync(binder.Name.ToUpper(), request_body: request_body, query_params: query_params).Result;
                 return true;
             }
@@ -177,20 +240,36 @@ namespace SendGrid.CSharp.HTTP.Client
 
         }
 
+        /// <summary>
+        ///     Make the call to the API server, override for testing or customization
+        /// </summary>
+        /// <param name="client">Client object ready for communication with API</param>
+        /// <param name="request">The parameters for the API call</param>
+        /// <returns>Response object</returns>
         public async virtual Task<Response> MakeRequest(HttpClient client, HttpRequestMessage request)
         {
             HttpResponseMessage response = await client.SendAsync(request);
             return new Response(response.StatusCode, response.Content, response.Headers);
         }
 
+        /// <summary>
+        ///     Prepare for async call to the API server
+        /// </summary>
+        /// <param name="method">HTTP verb</param>
+        /// <param name="request_body">JSON formatted string</param>
+        /// <param name="query_params">JSON formatted queary paramaters</param>
+        /// <returns>Response object</returns>
         private async Task<Response> RequestAsync(string method, String request_body = null, String query_params = null)
         {
             using (var client = new HttpClient())
             {
                 try
                 {
+                    // Build the URL
                     client.BaseAddress = new Uri(Host);
                     string endpoint = BuildUrl(query_params);
+
+                    // Build the request headers
                     client.DefaultRequestHeaders.Accept.Clear();
                     if(RequestHeaders != null)
                     {
@@ -212,12 +291,14 @@ namespace SendGrid.CSharp.HTTP.Client
                         }
                     }
 
+                    // Build the request body
                     StringContent content = null;
                     if (request_body != null)
                     {
                         content = new StringContent(request_body.ToString().Replace("'", "\""), Encoding.UTF8, MediaType);
                     }
 
+                    // Build the final request
                     HttpRequestMessage request = new HttpRequestMessage
                     {
                         Method = new HttpMethod(method),
