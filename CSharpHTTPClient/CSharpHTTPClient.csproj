@@ -7,8 +7,8 @@
     <ProjectGuid>{26C4841F-EC62-4EC7-B16E-3A7386EA36DC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CsharpHTTPClient</RootNamespace>
-    <AssemblyName>CSharpHTTPClient</AssemblyName>
+    <RootNamespace>SendGrid.CSharp.HTTP.Client</RootNamespace>
+    <AssemblyName>SendGrid.CSharp.HTTP.Client</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
