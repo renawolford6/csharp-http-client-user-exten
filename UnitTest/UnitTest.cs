@@ -1,5 +1,5 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using SendGrid.CSharp.HTTP.Client;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -26,10 +26,10 @@ namespace UnitTest
         }
     }
 
-    [TestClass]
+    [TestFixture]
     public class TestClient
     {
-        [TestMethod]
+        [Test]
         public void TestInitialization()
         {
             var host = "http://api.test.com";
@@ -47,7 +47,7 @@ namespace UnitTest
             Assert.AreEqual(urlPath, test_client.UrlPath);
         }
 
-        [TestMethod]
+        [Test]
         public void TestReflection()
         {
             var host = "http://api.test.com";
@@ -63,7 +63,7 @@ namespace UnitTest
             Assert.AreEqual(url1.UrlPath, "/my/test/path/final/result");
         }
 
-        [TestMethod]
+        [Test]
         public void TestMethodCall()
         {
             var host = "http://api.test.com";
