@@ -166,7 +166,7 @@ class Example
 
 # Announcements
 
-[2016.XX.XX] - We hit version 1!
+[2016.03.18] - We hit version 1!
 
 # Roadmap
 
