@@ -107,7 +107,7 @@ This allows for the following mapping from a URL to a method chain:
 
 All PRs require passing tests before the PR will be reviewed.
 
-All test files are in the `[UnitTest](https://github.com/sendgrid/csharp-http-client/tree/master/UnitTest)` directory.
+All test files are in the [`UnitTest`](https://github.com/sendgrid/csharp-http-client/tree/master/UnitTest) directory.
 
 For the purposes of contributing to this repo, please update the [`UnitTest.cs`](https://github.com/sendgrid/csharp-http-client/blob/master/UnitTest/UnitTest.cs) file with unit tests as you modify the code.
 
