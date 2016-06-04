@@ -15,8 +15,8 @@ namespace SendGrid.CSharp.HTTP.Client
     public class Response
     {
         public HttpStatusCode StatusCode;
-        public HttpContent ResponseBody;
-        public HttpResponseHeaders ResponseHeaders;
+        public HttpContent Body;
+        public HttpResponseHeaders Headers;
 
         /// <summary>
         ///     Holds the response from an API call.
@@ -27,8 +27,8 @@ namespace SendGrid.CSharp.HTTP.Client
         public Response(HttpStatusCode statusCode, HttpContent responseBody, HttpResponseHeaders responseHeaders)
         {
             StatusCode = statusCode;
-            ResponseBody = responseBody;
-            ResponseHeaders = responseHeaders;
+            Body = responseBody;
+            Headers = responseHeaders;
         }
 
         /// <summary>

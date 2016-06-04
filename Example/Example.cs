@@ -29,16 +29,16 @@ namespace Example
             requestHeaders.Add("X-Test", "test");
             dynamic response = client.version("v3").api_keys.get(queryParams: queryParams, requestHeaders: requestHeaders);
             // Console.WriteLine(response.StatusCode);
-            // Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
-            // Console.WriteLine(response.ResponseHeaders.ToString());
+            // Console.WriteLine(response.Body.ReadAsStringAsync().Result);
+            // Console.WriteLine(response.Headers.ToString());
 
-            var dssResponseBody = response.DeserializeResponseBody(response.ResponseBody);
+            var dssResponseBody = response.DeserializeResponseBody(response.Body);
             foreach ( var value in dssResponseBody["result"])
             {
                 Console.WriteLine("name: {0}, api_key_id: {1}",value["name"], value["api_key_id"]);
             }
 
-            var dssResponseHeaders = response.DeserializeResponseHeaders(response.ResponseHeaders);
+            var dssResponseHeaders = response.DeserializeResponseHeaders(response.Headers);
             foreach (var pair in dssResponseHeaders)
             {
                 Console.WriteLine("{0}: {1}", pair.Key, pair.Value);
@@ -60,10 +60,10 @@ namespace Example
             requestHeaders.Add("X-Test", "test2");
             response = client.api_keys.post(requestBody: requestBody, requestHeaders: requestHeaders);
             Console.WriteLine(response.StatusCode);
-            Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
-            Console.WriteLine(response.ResponseHeaders.ToString());
+            Console.WriteLine(response.Body.ReadAsStringAsync().Result);
+            Console.WriteLine(response.Headers.ToString());
             JavaScriptSerializer jss = new JavaScriptSerializer();
-            var ds_response = jss.Deserialize<Dictionary<string, dynamic>>(response.ResponseBody.ReadAsStringAsync().Result);
+            var ds_response = jss.Deserialize<Dictionary<string, dynamic>>(response.Body.ReadAsStringAsync().Result);
             string api_key_id = ds_response["api_key_id"];
 
             Console.WriteLine("\n\nPress any key to continue to GET single.");
@@ -72,8 +72,8 @@ namespace Example
             // GET Single
             response = client.api_keys._(api_key_id).get();
             Console.WriteLine(response.StatusCode);
-            Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
-            Console.WriteLine(response.ResponseHeaders.ToString());
+            Console.WriteLine(response.Body.ReadAsStringAsync().Result);
+            Console.WriteLine(response.Headers.ToString());
 
             Console.WriteLine("\n\nPress any key to continue to PATCH.");
             Console.ReadLine();
@@ -84,8 +84,8 @@ namespace Example
             }";
             response = client.api_keys._(api_key_id).patch(requestBody: requestBody);
             Console.WriteLine(response.StatusCode);
-            Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
-            Console.WriteLine(response.ResponseHeaders.ToString());
+            Console.WriteLine(response.Body.ReadAsStringAsync().Result);
+            Console.WriteLine(response.Headers.ToString());
 
             Console.WriteLine("\n\nPress any key to continue to PUT.");
             Console.ReadLine();
@@ -100,8 +100,8 @@ namespace Example
             }";
             response = client.api_keys._(api_key_id).put(requestBody: requestBody);
             Console.WriteLine(response.StatusCode);
-            Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
-            Console.WriteLine(response.ResponseHeaders.ToString());
+            Console.WriteLine(response.Body.ReadAsStringAsync().Result);
+            Console.WriteLine(response.Headers.ToString());
 
             Console.WriteLine("\n\nPress any key to continue to DELETE.");
             Console.ReadLine();
@@ -109,7 +109,7 @@ namespace Example
             // DELETE
             response = client.api_keys._(api_key_id).delete();
             Console.WriteLine(response.StatusCode);
-            Console.WriteLine(response.ResponseHeaders.ToString());
+            Console.WriteLine(response.Headers.ToString());
 
             Console.WriteLine("\n\nPress any key to exit.");
             Console.ReadLine();

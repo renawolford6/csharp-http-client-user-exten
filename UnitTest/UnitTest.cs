@@ -72,7 +72,7 @@ namespace UnitTest
             Assert.IsNotNull(response);
             Assert.AreEqual(response.StatusCode, HttpStatusCode.OK);
             var content = new StringContent("{'test': 'test_content'}", Encoding.UTF8, "application/json");
-            Assert.AreEqual(response.ResponseBody.ReadAsStringAsync().Result, content.ReadAsStringAsync().Result);
+            Assert.AreEqual(response.Body.ReadAsStringAsync().Result, content.ReadAsStringAsync().Result);
         }
     }
 }

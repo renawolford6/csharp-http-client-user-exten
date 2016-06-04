@@ -34,8 +34,8 @@ globalRequestHeaders.Add("Authorization", "Bearer XXXXXXX");
 dynamic client = new Client(host: baseUrl, requestHeaders: globalRequestHeaders);
 client.your.api._(param).call.get()
 Console.WriteLine(response.StatusCode);
-Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
-Console.WriteLine(response.ResponseHeaders.ToString());
+Console.WriteLine(response.Body.ReadAsStringAsync().Result);
+Console.WriteLine(response.Headers.ToString());
 ```
 
 `POST /your/api/{param}/call` with headers, query parameters and a request body with versioning.
@@ -51,8 +51,8 @@ var response = client.your.api._(param).call.post(requestBody: requestBody,
                                                   queryParams: queryParams,
                                                   requestHeaders: requestHeaders)
 Console.WriteLine(response.StatusCode);
-Console.WriteLine(response.ResponseBody.ReadAsStringAsync().Result);
-Console.WriteLine(response.ResponseHeaders.ToString());
+Console.WriteLine(response.Body.ReadAsStringAsync().Result);
+Console.WriteLine(response.Headers.ToString());
 ```
 
 # Usage
