@@ -87,4 +87,4 @@ csharp-http-client is guided and supported by the SendGrid [Developer Experience
 csharp-http-client is maintained and funded by SendGrid, Inc. The names and logos for csharp-http-client are trademarks of SendGrid, Inc.
 
 ![SendGrid Logo]
-(https://assets3.sendgrid.com/mkt/assets/logos_brands/small/sglogo_2015_blue-9c87423c2ff2ff393ebce1ab3bd018a4.png)ß
+(https://uiux.s3.amazonaws.com/2016-logos/email-logo%402x.png)
