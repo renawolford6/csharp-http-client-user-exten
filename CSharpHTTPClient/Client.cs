@@ -162,7 +162,7 @@ namespace SendGrid.CSharp.HTTP.Client
         /// <summary>
         ///     Add the authorization header, override to customize
         /// </summary>
-        /// <param name="header">Authoriztion header</param>
+        /// <param name="header">Authorization header</param>
         /// <returns>Authorization value to add to the header</returns>
         public virtual AuthenticationHeaderValue AddAuthorization(KeyValuePair<string, string> header)
         {
@@ -261,7 +261,7 @@ namespace SendGrid.CSharp.HTTP.Client
         /// <returns>Response object</returns>
         public async virtual Task<Response> MakeRequest(HttpClient client, HttpRequestMessage request)
         {
-            HttpResponseMessage response = await client.SendAsync(request);
+            HttpResponseMessage response = await client.SendAsync(request).ConfigureAwait(false);
             return new Response(response.StatusCode, response.Content, response.Headers);
         }
 
@@ -318,7 +318,7 @@ namespace SendGrid.CSharp.HTTP.Client
                         RequestUri = new Uri(endpoint),
                         Content = content
                     };
-                    return await MakeRequest(client, request);
+                    return await MakeRequest(client, request).ConfigureAwait(false);
 
                 }
                 catch (Exception ex)
