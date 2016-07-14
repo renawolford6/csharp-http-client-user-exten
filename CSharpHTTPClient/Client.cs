@@ -272,7 +272,7 @@ namespace SendGrid.CSharp.HTTP.Client
         /// <param name="requestBody">JSON formatted string</param>
         /// <param name="queryParams">JSON formatted queary paramaters</param>
         /// <returns>Response object</returns>
-        private async Task<Response> RequestAsync(string method, String requestBody = null, String queryParams = null)
+        private async Task<Response> RequestAsync(string method, string requestBody = null, string queryParams = null)
         {
             using (var client = new HttpClient())
             {
@@ -308,7 +308,7 @@ namespace SendGrid.CSharp.HTTP.Client
                     StringContent content = null;
                     if (requestBody != null)
                     {
-                        content = new StringContent(requestBody.ToString().Replace("'", "\""), Encoding.UTF8, MediaType);
+                        content = new StringContent(requestBody, Encoding.UTF8, MediaType);
                     }
 
                     // Build the final request
