@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.0.6] - 2016-07-18
+### Added
+- Sign assembly with a strong name
+
 ## [2.0.5] - 2016-07-14
 ### Fixed
 - Solves [issue #7](https://github.com/sendgrid/csharp-http-client/issues/7)
