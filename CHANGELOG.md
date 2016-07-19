@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.0.7] - 2016-07-19
+### Added
+- [Pull request #11](https://github.com/sendgrid/csharp-http-client/pull/11): Adding the option to set WebProxy object to be used on HttpClient 
+- Big thanks to [Juliano Nunes](https://github.com/julianonunes) for the pull request!
+
 ## [2.0.6] - 2016-07-18
 ### Added
 - Sign assembly with a strong name
