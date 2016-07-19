@@ -68,9 +68,25 @@ namespace SendGrid.CSharp.HTTP.Client
         public string Version;
         public string UrlPath;
         public string MediaType;
+        public WebProxy WebProxy;
         public enum Methods
         {
             DELETE, GET, PATCH, POST, PUT
+        }
+
+
+        /// <summary>
+        ///     REST API client.
+        /// </summary>
+        /// <param name="host">Base url (e.g. https://api.sendgrid.com)</param>
+        /// <param name="requestHeaders">A dictionary of request headers</param>
+        /// <param name="version">API version, override AddVersion to customize</param>
+        /// <param name="urlPath">Path to endpoint (e.g. /path/to/endpoint)</param>
+        /// <returns>Fluent interface to a REST API</returns>
+        public Client(WebProxy webProxy, string host, Dictionary<string, string> requestHeaders = null, string version = null, string urlPath = null)
+            : this(host, requestHeaders, version, urlPath)
+        {
+            WebProxy = webProxy;
         }
 
         /// <summary>
@@ -157,6 +173,28 @@ namespace SendGrid.CSharp.HTTP.Client
             UrlPath = null; // Reset the current object's state before we return a new one
             return new Client(Host, RequestHeaders, Version, endpoint);
 
+        }
+
+        /// <summary>
+        /// Factory method to return the right HttpClient settings.
+        /// </summary>
+        /// <returns>Instance of HttpClient</returns>
+        private HttpClient BuildHttpClient()
+        {
+            // Add the WebProxy if set
+            if (WebProxy != null)
+            {
+                var httpClientHandler = new HttpClientHandler()
+                {
+                    Proxy = WebProxy,
+                    PreAuthenticate = true,
+                    UseDefaultCredentials = false,
+                };
+
+                return new HttpClient(httpClientHandler);
+            }
+
+            return new HttpClient();
         }
 
         /// <summary>
@@ -274,7 +312,7 @@ namespace SendGrid.CSharp.HTTP.Client
         /// <returns>Response object</returns>
         private async Task<Response> RequestAsync(string method, string requestBody = null, string queryParams = null)
         {
-            using (var client = new HttpClient())
+            using (var client = BuildHttpClient())
             {
                 try
                 {
