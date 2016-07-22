@@ -44,12 +44,15 @@ Console.WriteLine(response.Headers.ToString());
 
 ```csharp
 using SendGrid.CSharp.HTTP.Client;
+using Newtonsoft.Json;
 globalRequestHeaders.Add("Authorization", "Bearer XXXXXXX");
 dynamic client = new Client(host: baseUrl, requestHeaders: globalRequestHeaders);
-string queryParams = "{'Hello': 0, 'World': 1}";
+string queryParams = @"{'Hello': 0, 'World': 1}";
 requestHeaders.Add("X-Test", "test");
-string requestBody = "{'some': 1, 'awesome': 2, 'data': 3}";
-var response = await client.your.api._(param).call.post(requestBody: requestBody,
+<<<<<<< HEAD
+string requestBody = @"{'some': 1, 'awesome': 2, 'data': 3}";
+Object json = JsonConvert.DeserializeObject<Object>(requestBody);
+var response = await client.your.api._(param).call.post(requestBody: json.ToString(),
                                                   queryParams: queryParams,
                                                   requestHeaders: requestHeaders)
 Console.WriteLine(response.StatusCode);

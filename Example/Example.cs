@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SendGrid.CSharp.HTTP.Client;
 using System.Web.Script.Serialization;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 // This is a working example, using the SendGrid API
 // You will need a SendGrid account and an active API Key
@@ -62,6 +63,7 @@ namespace Example
                     'alerts.read'
                 ]
             }";
+            Object json = JsonConvert.DeserializeObject<Object>(requestBody);
             requestHeaders.Clear();
             requestHeaders.Add("X-Test", "test2");
             response = await client.api_keys.post(requestBody: requestBody, requestHeaders: requestHeaders);
@@ -88,7 +90,8 @@ namespace Example
             requestBody = @"{
                 'name': 'A New Hope'
             }";
-            response = await client.api_keys._(api_key_id).patch(requestBody: requestBody);
+            json = JsonConvert.DeserializeObject<Object>(requestBody);
+            response = await client.api_keys._(api_key_id).patch(requestBody: json.ToString());
             Console.WriteLine(response.StatusCode);
             Console.WriteLine(response.Body.ReadAsStringAsync().Result);
             Console.WriteLine(response.Headers.ToString());
@@ -104,7 +107,8 @@ namespace Example
                     'user.profile.update'
                 ]
             }";
-            response = await client.api_keys._(api_key_id).put(requestBody: requestBody);
+            json = JsonConvert.DeserializeObject<Object>(requestBody);
+            response = await client.api_keys._(api_key_id).put(requestBody: json.ToString());
             Console.WriteLine(response.StatusCode);
             Console.WriteLine(response.Body.ReadAsStringAsync().Result);
             Console.WriteLine(response.Headers.ToString());
