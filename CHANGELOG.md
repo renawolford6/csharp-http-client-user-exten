@@ -3,6 +3,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.0.0] - 2016-07-22
+### BREAKING CHANGE
+- While your code may continue to work as before, the async behavior has changed, as we don't block on .Result anymore 
+- Fixes [issue #259](https://github.com/sendgrid/sendgrid-csharp/issues/259) in the sendgrid-csharp library 
+- Updated examples and README to demonstrate await usage 
+
 ## [2.0.7] - 2016-07-19
 ### Added
 - [Pull request #11](https://github.com/sendgrid/csharp-http-client/pull/11): Adding the option to set WebProxy object to be used on HttpClient 
