@@ -40,7 +40,7 @@ Here is a quick example:
 using SendGrid.CSharp.HTTP.Client;
 globalRequestHeaders.Add("Authorization", "Bearer XXXXXXX");
 dynamic client = new Client(host: baseUrl, requestHeaders: globalRequestHeaders);
-client.your.api._(param).call.get()
+var response = await client.your.api._(param).call.get()
 Console.WriteLine(response.StatusCode);
 Console.WriteLine(response.Body.ReadAsStringAsync().Result);
 Console.WriteLine(response.Headers.ToString());
@@ -57,7 +57,7 @@ string queryParams = @"{'Hello': 0, 'World': 1}";
 requestHeaders.Add("X-Test", "test");
 string requestBody = @"{'some': 1, 'awesome': 2, 'data': 3}";
 Object json = JsonConvert.DeserializeObject<Object>(requestBody);
-var response = client.your.api._(param).call.post(requestBody: json.ToString(),
+var response = await client.your.api._(param).call.post(requestBody: json.ToString(),
                                                   queryParams: queryParams,
                                                   requestHeaders: requestHeaders)
 Console.WriteLine(response.StatusCode);

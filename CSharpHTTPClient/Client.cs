@@ -280,7 +280,7 @@ namespace SendGrid.CSharp.HTTP.Client
                     }
                     i++;
                 }
-                result = RequestAsync(binder.Name.ToUpper(), requestBody: requestBody, queryParams: queryParams).Result;
+                result = RequestAsync(binder.Name.ToUpper(), requestBody: requestBody, queryParams: queryParams).ConfigureAwait(false);
                 return true;
             }
             else

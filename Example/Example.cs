@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using SendGrid.CSharp.HTTP.Client;
 using System.Web.Script.Serialization;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 // This is a working example, using the SendGrid API
@@ -12,6 +13,11 @@ namespace Example
     class Example
     {
         static void Main(string[] args)
+        {
+            Execute().Wait();
+        }
+
+        static async Task Execute()
         {
             String host = "https://e9sk3d3bfaikbpdq7.stoplight-proxy.io";
             Dictionary<String, String> globalRequestHeaders = new Dictionary<String, String>();
@@ -28,22 +34,10 @@ namespace Example
             }";
             Dictionary<String, String> requestHeaders = new Dictionary<String, String>();
             requestHeaders.Add("X-Test", "test");
-            dynamic response = client.api_keys.get(queryParams: queryParams, requestHeaders: requestHeaders);
+            dynamic response = await client.api_keys.get(queryParams: queryParams, requestHeaders: requestHeaders);
             Console.WriteLine(response.StatusCode);
             Console.WriteLine(response.Body.ReadAsStringAsync().Result);
             Console.WriteLine(response.Headers.ToString());
-
-            var dssResponseBody = response.DeserializeResponseBody(response.Body);
-            foreach ( var value in dssResponseBody["result"])
-            {
-                Console.WriteLine("name: {0}, api_key_id: {1}",value["name"], value["api_key_id"]);
-            }
-
-            var dssResponseHeaders = response.DeserializeResponseHeaders(response.Headers);
-            foreach (var pair in dssResponseHeaders)
-            {
-                Console.WriteLine("{0}: {1}", pair.Key, pair.Value);
-            }
 
             Console.WriteLine("\n\nPress any key to continue to POST.");
             Console.ReadLine();
@@ -60,7 +54,7 @@ namespace Example
             Object json = JsonConvert.DeserializeObject<Object>(requestBody);
             requestHeaders.Clear();
             requestHeaders.Add("X-Test", "test2");
-            response = client.api_keys.post(requestBody: json.ToString(), requestHeaders: requestHeaders);
+            response = await client.api_keys.post(requestBody: json.ToString(), requestHeaders: requestHeaders);
             Console.WriteLine(response.StatusCode);
             Console.WriteLine(response.Body.ReadAsStringAsync().Result);
             Console.WriteLine(response.Headers.ToString());
@@ -72,7 +66,7 @@ namespace Example
             Console.ReadLine();
 
             // GET Single
-            response = client.api_keys._(api_key_id).get();
+            response = await client.api_keys._(api_key_id).get();
             Console.WriteLine(response.StatusCode);
             Console.WriteLine(response.Body.ReadAsStringAsync().Result);
             Console.WriteLine(response.Headers.ToString());
@@ -85,7 +79,7 @@ namespace Example
                 'name': 'A New Hope'
             }";
             json = JsonConvert.DeserializeObject<Object>(requestBody);
-            response = client.api_keys._(api_key_id).patch(requestBody: json.ToString());
+            response = await client.api_keys._(api_key_id).patch(requestBody: json.ToString());
             Console.WriteLine(response.StatusCode);
             Console.WriteLine(response.Body.ReadAsStringAsync().Result);
             Console.WriteLine(response.Headers.ToString());
@@ -102,7 +96,7 @@ namespace Example
                 ]
             }";
             json = JsonConvert.DeserializeObject<Object>(requestBody);
-            response = client.api_keys._(api_key_id).put(requestBody: json.ToString());
+            response = await client.api_keys._(api_key_id).put(requestBody: json.ToString());
             Console.WriteLine(response.StatusCode);
             Console.WriteLine(response.Body.ReadAsStringAsync().Result);
             Console.WriteLine(response.Headers.ToString());
@@ -111,7 +105,7 @@ namespace Example
             Console.ReadLine();
 
             // DELETE
-            response = client.api_keys._(api_key_id).delete();
+            response = await client.api_keys._(api_key_id).delete();
             Console.WriteLine(response.StatusCode);
             Console.WriteLine(response.Headers.ToString());
 
