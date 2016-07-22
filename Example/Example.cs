@@ -39,18 +39,6 @@ namespace Example
             Console.WriteLine(response.Body.ReadAsStringAsync().Result);
             Console.WriteLine(response.Headers.ToString());
 
-            var dssResponseBody = response.DeserializeResponseBody(response.Body);
-            foreach (var value in dssResponseBody["result"])
-            {
-                Console.WriteLine("name: {0}, api_key_id: {1}", value["name"], value["api_key_id"]);
-            }
-
-            var dssResponseHeaders = response.DeserializeResponseHeaders(response.Headers);
-            foreach (var pair in dssResponseHeaders)
-            {
-                Console.WriteLine("{0}: {1}", pair.Key, pair.Value);
-            }
-
             Console.WriteLine("\n\nPress any key to continue to POST.");
             Console.ReadLine();
 
@@ -66,7 +54,7 @@ namespace Example
             Object json = JsonConvert.DeserializeObject<Object>(requestBody);
             requestHeaders.Clear();
             requestHeaders.Add("X-Test", "test2");
-            response = await client.api_keys.post(requestBody: requestBody, requestHeaders: requestHeaders);
+            response = await client.api_keys.post(requestBody: json.ToString(), requestHeaders: requestHeaders);
             Console.WriteLine(response.StatusCode);
             Console.WriteLine(response.Body.ReadAsStringAsync().Result);
             Console.WriteLine(response.Headers.ToString());

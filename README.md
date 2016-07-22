@@ -49,7 +49,6 @@ globalRequestHeaders.Add("Authorization", "Bearer XXXXXXX");
 dynamic client = new Client(host: baseUrl, requestHeaders: globalRequestHeaders);
 string queryParams = @"{'Hello': 0, 'World': 1}";
 requestHeaders.Add("X-Test", "test");
-<<<<<<< HEAD
 string requestBody = @"{'some': 1, 'awesome': 2, 'data': 3}";
 Object json = JsonConvert.DeserializeObject<Object>(requestBody);
 var response = await client.your.api._(param).call.post(requestBody: json.ToString(),
